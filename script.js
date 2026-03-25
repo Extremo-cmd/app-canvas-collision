@@ -80,6 +80,12 @@ class Circle {
             }
         }
 
+        // 🔴 NUEVO: limitar velocidad
+        const maxSpeed = 5;
+
+        this.dx = Math.max(Math.min(this.dx, maxSpeed), -maxSpeed);
+        this.dy = Math.max(Math.min(this.dy, maxSpeed), -maxSpeed);
+
         this.posX += this.dx;
         this.posY += this.dy;
 
@@ -96,7 +102,7 @@ function detectarColision(c1, c2) {
     return dist2 <= radios * radios;
 }
 
-// 🔴 rebote simple (inciso C)
+// 🔴 rebote simple
 function resolverColision(c1, c2) {
     collisionCount++;
 
@@ -170,7 +176,7 @@ function reiniciar() {
 // 🎯 inicial
 reiniciar();
 
-// 🖥️ UI MEJORADA
+// 🖥️ UI
 function drawUI() {
     ctx.fillStyle = "white";
     ctx.font = "16px Arial";
