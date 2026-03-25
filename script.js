@@ -43,9 +43,10 @@ class Circle {
         this.dx = (Math.random() - 0.5) * 4;
         this.dy = (Math.random() - 0.5) * 4;
 
-        this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+        // 🔴 FIX COLOR
+        this.baseColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
+        this.color = this.baseColor;
 
-        // 🔴 NUEVO
         this.colliding = false;
     }
 
@@ -90,14 +91,15 @@ class Circle {
         this.posX += this.dx;
         this.posY += this.dy;
 
-        // 🔴 reset colisión
+        // 🔴 RESET
         this.colliding = false;
+        this.color = this.baseColor;
 
         this.draw();
     }
 }
 
-// ⚡ detección
+// detección
 function detectarColision(c1, c2) {
     let dx = c2.posX - c1.posX;
     let dy = c2.posY - c1.posY;
@@ -106,10 +108,8 @@ function detectarColision(c1, c2) {
     return dist2 <= radios * radios;
 }
 
-// 🔴 FIX COLISIÓN
+// colisión
 function resolverColision(c1, c2) {
-
-    // evitar rebotes múltiples
     if (!c1.colliding && !c2.colliding) {
 
         collisionCount++;
@@ -122,13 +122,14 @@ function resolverColision(c1, c2) {
 
         c1.colliding = true;
         c2.colliding = true;
-    }
 
-    c1.color = "red";
-    c2.color = "red";
+        // 🔴 SOLO EN COLISIÓN
+        c1.color = "red";
+        c2.color = "red";
+    }
 }
 
-// 🔲 GRID
+// GRID
 function getCell(x, y) {
     let col = Math.floor(x / cellSize);
     let row = Math.floor(y / cellSize);
@@ -157,7 +158,7 @@ function getNeighbors(cellKey) {
     return vecinos;
 }
 
-// 🔁 crear círculo
+// crear
 function crearCirculo(x, y) {
     let radius = Math.random() * 30 + 15;
     let nuevo;
@@ -176,7 +177,7 @@ function crearCirculo(x, y) {
     circles.push(nuevo);
 }
 
-// 🔄 reiniciar
+// reiniciar
 function reiniciar() {
     circles.length = 0;
     collisionCount = 0;
@@ -185,10 +186,10 @@ function reiniciar() {
     }
 }
 
-// 🎯 inicial
+// inicio
 reiniciar();
 
-// 🖥️ UI
+// UI
 function drawUI() {
     ctx.fillStyle = "white";
     ctx.font = "16px Arial";
@@ -200,7 +201,7 @@ function drawUI() {
     ctx.fillText(`Controles: P = Pausar | R = Reiniciar | A = Agregar`, 20, 100);
 }
 
-// 🔄 animación
+// animación
 function animate(time = 0) {
     requestAnimationFrame(animate);
 
@@ -217,12 +218,7 @@ function animate(time = 0) {
 
     buildGrid();
 
-    circles.forEach(c => {
-        if (c.color !== "red") {
-            c.color = `hsl(${c.id * 30}, 70%, 60%)`;
-        }
-        c.update();
-    });
+    circles.forEach(c => c.update());
 
     circles.forEach(c => {
         let vecinos = getNeighbors(getCell(c.posX, c.posY));
