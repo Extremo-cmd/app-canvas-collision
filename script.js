@@ -211,19 +211,23 @@ reiniciar();
 
 // 🔴 UI MEJORADA
 function drawUI() {
+    const panelWidth = 260;
+    const x = canvas.width - panelWidth - 20; // margen derecho
+    const y = 20;
+
     // fondo
     ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(10, 10, 260, 110);
+    ctx.fillRect(x, y, panelWidth, 110);
 
     ctx.fillStyle = "white";
     ctx.font = "18px Arial";
 
-    ctx.fillText(`FPS: ${fps}`, 20, 35);
-    ctx.fillText(`Colisiones: ${collisionCount}`, 20, 60);
-    ctx.fillText(`Círculos: ${circles.length}`, 20, 85);
+    ctx.fillText(`FPS: ${fps}`, x + 10, y + 25);
+    ctx.fillText(`Colisiones: ${collisionCount}`, x + 10, y + 50);
+    ctx.fillText(`Círculos: ${circles.length}`, x + 10, y + 75);
 
     ctx.font = "14px Arial";
-    ctx.fillText(`P: Pausa | R: Reset | A: Agregar`, 20, 105);
+    ctx.fillText(`P: Pausa | R: Reset | A: Agregar`, x + 10, y + 95);
 }
 
 // animación
