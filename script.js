@@ -22,7 +22,7 @@ canvas.addEventListener("mousemove", e => {
     mouse.y = e.y;
 });
 
-// 🔘 teclado
+// teclado
 document.addEventListener("keydown", e => {
     if (e.key === "p") paused = !paused;
     if (e.key === "r") reiniciar();
@@ -37,6 +37,7 @@ class Circle {
     constructor(x, y, radius, id) {
         this.posX = x;
         this.posY = y;
+        this.baseRadius = radius;
         this.radius = radius;
         this.id = id;
 
@@ -48,8 +49,8 @@ class Circle {
 
         this.colliding = false;
 
-        // 🔴 NUEVO
         this.collisionTime = 0;
+        this.scaleTime = 0; // 🔴 NUEVO
     }
 
     draw() {
@@ -101,6 +102,14 @@ class Circle {
             this.color = this.baseColor;
         }
 
+        // 🔴 EFECTO ESCALA (impacto)
+        if (this.scaleTime > 0) {
+            this.radius = this.baseRadius * 1.3;
+            this.scaleTime--;
+        } else {
+            this.radius = this.baseRadius;
+        }
+
         this.colliding = false;
 
         this.draw();
@@ -131,9 +140,12 @@ function resolverColision(c1, c2) {
         c1.colliding = true;
         c2.colliding = true;
 
-        // 🔴 DURACIÓN DEL EFECTO
+        // 🔴 EFECTOS
         c1.collisionTime = 10;
         c2.collisionTime = 10;
+
+        c1.scaleTime = 5;
+        c2.scaleTime = 5;
     }
 }
 
@@ -197,16 +209,21 @@ function reiniciar() {
 // inicio
 reiniciar();
 
-// UI
+// 🔴 UI MEJORADA
 function drawUI() {
+    // fondo
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
+    ctx.fillRect(10, 10, 260, 110);
+
     ctx.fillStyle = "white";
-    ctx.font = "16px Arial";
+    ctx.font = "18px Arial";
 
-    ctx.fillText(`FPS: ${fps}`, 20, 30);
-    ctx.fillText(`Colisiones detectadas: ${collisionCount}`, 20, 50);
-    ctx.fillText(`Total de círculos: ${circles.length}`, 20, 70);
+    ctx.fillText(`FPS: ${fps}`, 20, 35);
+    ctx.fillText(`Colisiones: ${collisionCount}`, 20, 60);
+    ctx.fillText(`Círculos: ${circles.length}`, 20, 85);
 
-    ctx.fillText(`Controles: P = Pausar | R = Reiniciar | A = Agregar`, 20, 100);
+    ctx.font = "14px Arial";
+    ctx.fillText(`P: Pausa | R: Reset | A: Agregar`, 20, 105);
 }
 
 // animación
