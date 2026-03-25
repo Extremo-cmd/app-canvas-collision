@@ -92,7 +92,7 @@ class Circle {
         this.posX += this.dx;
         this.posY += this.dy;
 
-        // color con duración
+        // color temporal
         if (this.collisionTime > 0) {
             this.color = "red";
             this.collisionTime--;
@@ -100,7 +100,7 @@ class Circle {
             this.color = this.baseColor;
         }
 
-        // escala impacto
+        // efecto impacto tamaño
         if (this.scaleTime > 0) {
             this.radius = this.baseRadius * 1.3;
             this.scaleTime--;
@@ -123,13 +123,13 @@ function detectarColision(c1, c2) {
     return dist2 <= radios * radios;
 }
 
-// 🔴 COLISIÓN PRO (separación incluida)
+// 🔥 colisión corregida (NO se pegan)
 function resolverColision(c1, c2) {
     let dx = c2.posX - c1.posX;
     let dy = c2.posY - c1.posY;
     let dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist === 0) return;
+    if (dist === 0) dist = 0.1;
 
     let overlap = c1.radius + c2.radius - dist;
 
@@ -137,25 +137,29 @@ function resolverColision(c1, c2) {
         let nx = dx / dist;
         let ny = dy / dist;
 
-        // 🔥 SEPARACIÓN REAL
-        c1.posX -= nx * overlap / 2;
-        c1.posY -= ny * overlap / 2;
-        c2.posX += nx * overlap / 2;
-        c2.posY += ny * overlap / 2;
+        let separation = overlap + 1;
+
+        c1.posX -= nx * separation / 2;
+        c1.posY -= ny * separation / 2;
+        c2.posX += nx * separation / 2;
+        c2.posY += ny * separation / 2;
     }
 
     if (!c1.colliding && !c2.colliding) {
 
         collisionCount++;
 
-        // rebote
-        [c1.dx, c2.dx] = [c2.dx, c1.dx];
-        [c1.dy, c2.dy] = [c2.dy, c1.dy];
+        let tempDx = c1.dx;
+        let tempDy = c1.dy;
+
+        c1.dx = c2.dx;
+        c1.dy = c2.dy;
+        c2.dx = tempDx;
+        c2.dy = tempDy;
 
         c1.colliding = true;
         c2.colliding = true;
 
-        // efectos
         c1.collisionTime = 10;
         c2.collisionTime = 10;
 
@@ -219,19 +223,18 @@ function reiniciar() {
 
 reiniciar();
 
-// 🧊 UI GLASSMORPHISM
+// 🧊 UI CORREGIDA
 function drawUI() {
-    const w = 260;
+    const w = 270;
+    const h = 140;
     const x = canvas.width - w - 20;
     const y = 20;
 
-    // fondo vidrio
     ctx.fillStyle = "rgba(255,255,255,0.1)";
-    ctx.fillRect(x, y, w, 120);
+    ctx.fillRect(x, y, w, h);
 
-    // borde
     ctx.strokeStyle = "rgba(255,255,255,0.3)";
-    ctx.strokeRect(x, y, w, 120);
+    ctx.strokeRect(x, y, w, h);
 
     ctx.fillStyle = "white";
     ctx.font = "18px Arial";
@@ -241,7 +244,9 @@ function drawUI() {
     ctx.fillText(`Círculos: ${circles.length}`, x + 15, y + 90);
 
     ctx.font = "14px Arial";
-    ctx.fillText(`P: Pausa | R: Reset | A: +`, x + 15, y + 110);
+    ctx.fillText(`P: Pausa`, x + 15, y + 115);
+    ctx.fillText(`R: Reset`, x + 120, y + 115);
+    ctx.fillText(`A: Agregar`, x + 15, y + 135);
 }
 
 // animación
