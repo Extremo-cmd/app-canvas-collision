@@ -43,8 +43,10 @@ class Circle {
         this.dx = (Math.random() - 0.5) * 4;
         this.dy = (Math.random() - 0.5) * 4;
 
-        // 🔴 NUEVO: color dinámico
         this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+
+        // 🔴 NUEVO
+        this.colliding = false;
     }
 
     draw() {
@@ -81,13 +83,15 @@ class Circle {
             }
         }
 
-        // limitar velocidad
         const maxSpeed = 5;
         this.dx = Math.max(Math.min(this.dx, maxSpeed), -maxSpeed);
         this.dy = Math.max(Math.min(this.dy, maxSpeed), -maxSpeed);
 
         this.posX += this.dx;
         this.posY += this.dy;
+
+        // 🔴 reset colisión
+        this.colliding = false;
 
         this.draw();
     }
@@ -102,15 +106,23 @@ function detectarColision(c1, c2) {
     return dist2 <= radios * radios;
 }
 
-// 🔴 rebote simple
+// 🔴 FIX COLISIÓN
 function resolverColision(c1, c2) {
-    collisionCount++;
 
-    c1.dx = -c1.dx;
-    c1.dy = -c1.dy;
+    // evitar rebotes múltiples
+    if (!c1.colliding && !c2.colliding) {
 
-    c2.dx = -c2.dx;
-    c2.dy = -c2.dy;
+        collisionCount++;
+
+        c1.dx = -c1.dx;
+        c1.dy = -c1.dy;
+
+        c2.dx = -c2.dx;
+        c2.dy = -c2.dy;
+
+        c1.colliding = true;
+        c2.colliding = true;
+    }
 
     c1.color = "red";
     c2.color = "red";
@@ -206,7 +218,6 @@ function animate(time = 0) {
     buildGrid();
 
     circles.forEach(c => {
-        // 🔴 NUEVO: mantener color base (no cyan)
         if (c.color !== "red") {
             c.color = `hsl(${c.id * 30}, 70%, 60%)`;
         }
