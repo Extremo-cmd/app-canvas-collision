@@ -12,24 +12,20 @@ let mouse = { x: null, y: null };
 let paused = false;
 let collisionCount = 0;
 
-// FPS
 let lastTime = 0;
 let fps = 0;
 
-// 🖱️ mouse
 canvas.addEventListener("mousemove", e => {
     mouse.x = e.x;
     mouse.y = e.y;
 });
 
-// teclado
 document.addEventListener("keydown", e => {
     if (e.key === "p") paused = !paused;
     if (e.key === "r") reiniciar();
     if (e.key === "a") crearCirculo();
 });
 
-// GRID
 const cellSize = 100;
 let grid = {};
 
@@ -48,9 +44,8 @@ class Circle {
         this.color = this.baseColor;
 
         this.colliding = false;
-
         this.collisionTime = 0;
-        this.scaleTime = 0; // 🔴 NUEVO
+        this.scaleTime = 0;
     }
 
     draw() {
@@ -69,6 +64,7 @@ class Circle {
     }
 
     update() {
+        // rebote paredes
         if (this.posX + this.radius > canvas.width || this.posX - this.radius < 0) {
             this.dx *= -1;
         }
@@ -76,6 +72,7 @@ class Circle {
             this.dy *= -1;
         }
 
+        // interacción mouse
         if (mouse.x && mouse.y) {
             let dx = this.posX - mouse.x;
             let dy = this.posY - mouse.y;
@@ -87,6 +84,7 @@ class Circle {
             }
         }
 
+        // limitar velocidad
         const maxSpeed = 5;
         this.dx = Math.max(Math.min(this.dx, maxSpeed), -maxSpeed);
         this.dy = Math.max(Math.min(this.dy, maxSpeed), -maxSpeed);
@@ -94,7 +92,7 @@ class Circle {
         this.posX += this.dx;
         this.posY += this.dy;
 
-        // 🔴 EFECTO COLOR
+        // color con duración
         if (this.collisionTime > 0) {
             this.color = "red";
             this.collisionTime--;
@@ -102,7 +100,7 @@ class Circle {
             this.color = this.baseColor;
         }
 
-        // 🔴 EFECTO ESCALA (impacto)
+        // escala impacto
         if (this.scaleTime > 0) {
             this.radius = this.baseRadius * 1.3;
             this.scaleTime--;
@@ -125,22 +123,39 @@ function detectarColision(c1, c2) {
     return dist2 <= radios * radios;
 }
 
-// colisión
+// 🔴 COLISIÓN PRO (separación incluida)
 function resolverColision(c1, c2) {
+    let dx = c2.posX - c1.posX;
+    let dy = c2.posY - c1.posY;
+    let dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist === 0) return;
+
+    let overlap = c1.radius + c2.radius - dist;
+
+    if (overlap > 0) {
+        let nx = dx / dist;
+        let ny = dy / dist;
+
+        // 🔥 SEPARACIÓN REAL
+        c1.posX -= nx * overlap / 2;
+        c1.posY -= ny * overlap / 2;
+        c2.posX += nx * overlap / 2;
+        c2.posY += ny * overlap / 2;
+    }
+
     if (!c1.colliding && !c2.colliding) {
 
         collisionCount++;
 
-        c1.dx = -c1.dx;
-        c1.dy = -c1.dy;
-
-        c2.dx = -c2.dx;
-        c2.dy = -c2.dy;
+        // rebote
+        [c1.dx, c2.dx] = [c2.dx, c1.dx];
+        [c1.dy, c2.dy] = [c2.dy, c1.dy];
 
         c1.colliding = true;
         c2.colliding = true;
 
-        // 🔴 EFECTOS
+        // efectos
         c1.collisionTime = 10;
         c2.collisionTime = 10;
 
@@ -151,9 +166,7 @@ function resolverColision(c1, c2) {
 
 // GRID
 function getCell(x, y) {
-    let col = Math.floor(x / cellSize);
-    let row = Math.floor(y / cellSize);
-    return `${col},${row}`;
+    return `${Math.floor(x / cellSize)},${Math.floor(y / cellSize)}`;
 }
 
 function buildGrid() {
@@ -201,33 +214,34 @@ function crearCirculo(x, y) {
 function reiniciar() {
     circles.length = 0;
     collisionCount = 0;
-    for (let i = 0; i < numInicial; i++) {
-        crearCirculo();
-    }
+    for (let i = 0; i < numInicial; i++) crearCirculo();
 }
 
-// inicio
 reiniciar();
 
-// 🔴 UI MEJORADA
+// 🧊 UI GLASSMORPHISM
 function drawUI() {
-    const panelWidth = 260;
-    const x = canvas.width - panelWidth - 20; // margen derecho
+    const w = 260;
+    const x = canvas.width - w - 20;
     const y = 20;
 
-    // fondo
-    ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(x, y, panelWidth, 110);
+    // fondo vidrio
+    ctx.fillStyle = "rgba(255,255,255,0.1)";
+    ctx.fillRect(x, y, w, 120);
+
+    // borde
+    ctx.strokeStyle = "rgba(255,255,255,0.3)";
+    ctx.strokeRect(x, y, w, 120);
 
     ctx.fillStyle = "white";
     ctx.font = "18px Arial";
 
-    ctx.fillText(`FPS: ${fps}`, x + 10, y + 25);
-    ctx.fillText(`Colisiones: ${collisionCount}`, x + 10, y + 50);
-    ctx.fillText(`Círculos: ${circles.length}`, x + 10, y + 75);
+    ctx.fillText(`FPS: ${fps}`, x + 15, y + 30);
+    ctx.fillText(`Colisiones: ${collisionCount}`, x + 15, y + 60);
+    ctx.fillText(`Círculos: ${circles.length}`, x + 15, y + 90);
 
     ctx.font = "14px Arial";
-    ctx.fillText(`P: Pausa | R: Reset | A: Agregar`, x + 10, y + 95);
+    ctx.fillText(`P: Pausa | R: Reset | A: +`, x + 15, y + 110);
 }
 
 // animación
