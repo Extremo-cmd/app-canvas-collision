@@ -22,14 +22,14 @@ canvas.addEventListener("mousemove", e => {
     mouse.y = e.y;
 });
 
-// 🔘 controles teclado
+// 🔘 teclado
 document.addEventListener("keydown", e => {
     if (e.key === "p") paused = !paused;
     if (e.key === "r") reiniciar();
     if (e.key === "a") crearCirculo();
 });
 
-// 🔲 GRID
+// GRID
 const cellSize = 100;
 let grid = {};
 
@@ -43,11 +43,13 @@ class Circle {
         this.dx = (Math.random() - 0.5) * 4;
         this.dy = (Math.random() - 0.5) * 4;
 
-        // 🔴 FIX COLOR
         this.baseColor = `hsl(${Math.random() * 360}, 70%, 60%)`;
         this.color = this.baseColor;
 
         this.colliding = false;
+
+        // 🔴 NUEVO
+        this.collisionTime = 0;
     }
 
     draw() {
@@ -91,9 +93,15 @@ class Circle {
         this.posX += this.dx;
         this.posY += this.dy;
 
-        // 🔴 RESET
+        // 🔴 EFECTO COLOR
+        if (this.collisionTime > 0) {
+            this.color = "red";
+            this.collisionTime--;
+        } else {
+            this.color = this.baseColor;
+        }
+
         this.colliding = false;
-        this.color = this.baseColor;
 
         this.draw();
     }
@@ -123,9 +131,9 @@ function resolverColision(c1, c2) {
         c1.colliding = true;
         c2.colliding = true;
 
-        // 🔴 SOLO EN COLISIÓN
-        c1.color = "red";
-        c2.color = "red";
+        // 🔴 DURACIÓN DEL EFECTO
+        c1.collisionTime = 10;
+        c2.collisionTime = 10;
     }
 }
 
