@@ -66,7 +66,7 @@ for (let i = 0; i < numCirculos; i++) {
     circles.push(new Circle(x, y, radius, "blue", i + 1, 2));
 }
 
-// 🔍 DETECCIÓN DE COLISIÓN (INCISO B)
+// 🔍 DETECCIÓN
 function detectarColision(c1, c2) {
     let dx = c2.posX - c1.posX;
     let dy = c2.posY - c1.posY;
@@ -87,11 +87,20 @@ function updateCircle() {
         circles[i].update(ctx);
     }
 
-    // 🔴 SOLO detectar (sin rebote aún)
+    // 🔴 DETECCIÓN + REBOTE (INCISO C)
     for (let i = 0; i < circles.length; i++) {
         for (let j = i + 1; j < circles.length; j++) {
 
             if (detectarColision(circles[i], circles[j])) {
+
+                // 🔁 rebote en dirección contraria
+                circles[i].dx = -circles[i].dx;
+                circles[i].dy = -circles[i].dy;
+
+                circles[j].dx = -circles[j].dx;
+                circles[j].dy = -circles[j].dy;
+
+                // 🔴 visual
                 circles[i].color = "red";
                 circles[j].color = "red";
             }
