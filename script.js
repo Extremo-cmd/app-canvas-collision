@@ -96,11 +96,16 @@ function detectarColision(c1, c2) {
     return dist2 <= radios * radios;
 }
 
-// 🔴 INCISO B: SOLO DETECTAR (SIN REBOTE)
+// 🔴 rebote simple (inciso C)
 function resolverColision(c1, c2) {
     collisionCount++;
 
-    // SOLO cambio visual
+    c1.dx = -c1.dx;
+    c1.dy = -c1.dy;
+
+    c2.dx = -c2.dx;
+    c2.dy = -c2.dy;
+
     c1.color = "red";
     c2.color = "red";
 }
@@ -165,16 +170,16 @@ function reiniciar() {
 // 🎯 inicial
 reiniciar();
 
-// 🖥️ UI
+// 🖥️ UI MEJORADA
 function drawUI() {
     ctx.fillStyle = "white";
     ctx.font = "16px Arial";
 
     ctx.fillText(`FPS: ${fps}`, 20, 30);
-    ctx.fillText(`Colisiones: ${collisionCount}`, 20, 50);
-    ctx.fillText(`Círculos: ${circles.length}`, 20, 70);
+    ctx.fillText(`Colisiones detectadas: ${collisionCount}`, 20, 50);
+    ctx.fillText(`Total de círculos: ${circles.length}`, 20, 70);
 
-    ctx.fillText(`P: Pausar | R: Reiniciar | A: Agregar`, 20, 100);
+    ctx.fillText(`Controles: P = Pausar | R = Reiniciar | A = Agregar`, 20, 100);
 }
 
 // 🔄 animación
