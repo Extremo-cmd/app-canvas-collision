@@ -245,7 +245,7 @@ function drawUI() {
     ctx.fillStyle = "white";
     ctx.font = "18px Arial";
 
-    ctx.fillText(`FPS: ${fps}`, x + 15, y + 15);
+    ctx.fillText(`SIMULADOR ACTIVO | FPS: ${fps}`, x + 15, y + 15);
     ctx.fillText(`Colisiones: ${collisionCount}`, x + 15, y + 45);
     ctx.fillText(`Círculos: ${circles.length}`, x + 15, y + 75);
 
