@@ -226,27 +226,34 @@ reiniciar();
 // 🧊 UI CORREGIDA
 function drawUI() {
     const w = 270;
-    const h = 140;
+    const h = 150;
     const x = canvas.width - w - 20;
     const y = 20;
 
+    // 🧊 fondo glass
     ctx.fillStyle = "rgba(255,255,255,0.1)";
     ctx.fillRect(x, y, w, h);
 
+    // borde
     ctx.strokeStyle = "rgba(255,255,255,0.3)";
     ctx.strokeRect(x, y, w, h);
+
+    // 🔴 CLAVE: alineación correcta
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top"; // 🔥 ESTO ARREGLA TODO
 
     ctx.fillStyle = "white";
     ctx.font = "18px Arial";
 
-    ctx.fillText(`FPS: ${fps}`, x + 15, y + 30);
-    ctx.fillText(`Colisiones: ${collisionCount}`, x + 15, y + 60);
-    ctx.fillText(`Círculos: ${circles.length}`, x + 15, y + 90);
+    ctx.fillText(`FPS: ${fps}`, x + 15, y + 15);
+    ctx.fillText(`Colisiones: ${collisionCount}`, x + 15, y + 45);
+    ctx.fillText(`Círculos: ${circles.length}`, x + 15, y + 75);
 
     ctx.font = "14px Arial";
-    ctx.fillText(`P: Pausa`, x + 15, y + 115);
-    ctx.fillText(`R: Reset`, x + 120, y + 115);
-    ctx.fillText(`A: Agregar`, x + 15, y + 135);
+
+    ctx.fillText(`P: Pausa`, x + 15, y + 110);
+    ctx.fillText(`R: Reset`, x + 120, y + 110);
+    ctx.fillText(`A: Agregar`, x + 15, y + 130);
 }
 
 // animación
