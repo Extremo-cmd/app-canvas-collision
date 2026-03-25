@@ -43,7 +43,8 @@ class Circle {
         this.dx = (Math.random() - 0.5) * 4;
         this.dy = (Math.random() - 0.5) * 4;
 
-        this.color = "cyan";
+        // 🔴 NUEVO: color dinámico
+        this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
     }
 
     draw() {
@@ -80,9 +81,8 @@ class Circle {
             }
         }
 
-        // 🔴 NUEVO: limitar velocidad
+        // limitar velocidad
         const maxSpeed = 5;
-
         this.dx = Math.max(Math.min(this.dx, maxSpeed), -maxSpeed);
         this.dy = Math.max(Math.min(this.dy, maxSpeed), -maxSpeed);
 
@@ -206,7 +206,10 @@ function animate(time = 0) {
     buildGrid();
 
     circles.forEach(c => {
-        c.color = "cyan";
+        // 🔴 NUEVO: mantener color base (no cyan)
+        if (c.color !== "red") {
+            c.color = `hsl(${c.id * 30}, 70%, 60%)`;
+        }
         c.update();
     });
 
