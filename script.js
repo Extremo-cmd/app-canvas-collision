@@ -1,111 +1,214 @@
 const canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
+const ctx = canvas.getContext("2d");
 
-const window_height = window.innerHeight;
-const window_width = window.innerWidth;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+canvas.style.background = "#111";
 
-canvas.height = window_height;
-canvas.width = window_width;
-canvas.style.background = "#ff8";
+const circles = [];
+let numInicial = 20;
+
+let mouse = { x: null, y: null };
+let paused = false;
+let collisionCount = 0;
+
+// FPS
+let lastTime = 0;
+let fps = 0;
+
+// 🖱️ mouse
+canvas.addEventListener("mousemove", e => {
+    mouse.x = e.x;
+    mouse.y = e.y;
+});
+
+// 🔘 controles teclado
+document.addEventListener("keydown", e => {
+    if (e.key === "p") paused = !paused;
+    if (e.key === "r") reiniciar();
+    if (e.key === "a") crearCirculo();
+});
+
+// 🔲 GRID
+const cellSize = 100;
+let grid = {};
 
 class Circle {
-    constructor(x, y, radius, color, text, speed) {
+    constructor(x, y, radius, id) {
         this.posX = x;
         this.posY = y;
         this.radius = radius;
-        this.color = color;
-        this.text = text;
-        this.speed = speed;
+        this.id = id;
 
-        this.dx = 1 * this.speed;
-        this.dy = 1 * this.speed;
+        this.dx = (Math.random() - 0.5) * 4;
+        this.dy = (Math.random() - 0.5) * 4;
+
+        this.color = "cyan";
     }
 
-    draw(context) {
-        context.beginPath();
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.posX, this.posY, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
 
-        context.strokeStyle = this.color;
-        context.textAlign = "center";
-        context.textBaseline = "middle";
-        context.font = "20px Arial";
-        context.fillText(this.text, this.posX, this.posY);
+        ctx.fillStyle = "black";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "14px Arial";
+        ctx.fillText(this.id, this.posX, this.posY);
 
-        context.lineWidth = 2;
-        context.arc(this.posX, this.posY, this.radius, 0, Math.PI * 2);
-        context.stroke();
-
-        context.closePath();
+        ctx.closePath();
     }
 
-    update(context) {
-        // Rebote en paredes
-        if ((this.posX + this.radius) > window_width || (this.posX - this.radius) < 0) {
-            this.dx = -this.dx;
+    update() {
+        if (this.posX + this.radius > canvas.width || this.posX - this.radius < 0) {
+            this.dx *= -1;
+        }
+        if (this.posY + this.radius > canvas.height || this.posY - this.radius < 0) {
+            this.dy *= -1;
         }
 
-        if ((this.posY + this.radius) > window_height || (this.posY - this.radius) < 0) {
-            this.dy = -this.dy;
+        if (mouse.x && mouse.y) {
+            let dx = this.posX - mouse.x;
+            let dy = this.posY - mouse.y;
+            let dist = dx * dx + dy * dy;
+
+            if (dist < 10000) {
+                this.dx += dx * 0.01;
+                this.dy += dy * 0.01;
+            }
         }
 
         this.posX += this.dx;
         this.posY += this.dy;
 
-        this.draw(context);
+        this.draw();
     }
 }
 
-// 🔁 Crear N círculos
-let circles = [];
-let numCirculos = 10;
-
-for (let i = 0; i < numCirculos; i++) {
-    let radius = Math.floor(Math.random() * 40 + 20);
-    let x = Math.random() * (window_width - radius * 2) + radius;
-    let y = Math.random() * (window_height - radius * 2) + radius;
-
-    circles.push(new Circle(x, y, radius, "blue", i + 1, 2));
-}
-
-// 🔍 DETECCIÓN
+// ⚡ detección
 function detectarColision(c1, c2) {
     let dx = c2.posX - c1.posX;
     let dy = c2.posY - c1.posY;
+    let dist2 = dx * dx + dy * dy;
+    let radios = c1.radius + c2.radius;
+    return dist2 <= radios * radios;
+}
 
-    let distancia = Math.sqrt(dx * dx + dy * dy);
+// 🔴 INCISO B: SOLO DETECTAR (SIN REBOTE)
+function resolverColision(c1, c2) {
+    collisionCount++;
 
-    return distancia <= (c1.radius + c2.radius);
+    // SOLO cambio visual
+    c1.color = "red";
+    c2.color = "red";
+}
+
+// 🔲 GRID
+function getCell(x, y) {
+    let col = Math.floor(x / cellSize);
+    let row = Math.floor(y / cellSize);
+    return `${col},${row}`;
+}
+
+function buildGrid() {
+    grid = {};
+    circles.forEach(c => {
+        let key = getCell(c.posX, c.posY);
+        if (!grid[key]) grid[key] = [];
+        grid[key].push(c);
+    });
+}
+
+function getNeighbors(cellKey) {
+    let [col, row] = cellKey.split(",").map(Number);
+    let vecinos = [];
+
+    for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+            let key = `${col + i},${row + j}`;
+            if (grid[key]) vecinos.push(...grid[key]);
+        }
+    }
+    return vecinos;
+}
+
+// 🔁 crear círculo
+function crearCirculo(x, y) {
+    let radius = Math.random() * 30 + 15;
+    let nuevo;
+    let intentos = 0;
+
+    do {
+        let posX = x ?? Math.random() * canvas.width;
+        let posY = y ?? Math.random() * canvas.height;
+
+        nuevo = new Circle(posX, posY, radius, circles.length + 1);
+        intentos++;
+        if (intentos > 100) break;
+
+    } while (circles.some(c => detectarColision(nuevo, c)));
+
+    circles.push(nuevo);
+}
+
+// 🔄 reiniciar
+function reiniciar() {
+    circles.length = 0;
+    collisionCount = 0;
+    for (let i = 0; i < numInicial; i++) {
+        crearCirculo();
+    }
+}
+
+// 🎯 inicial
+reiniciar();
+
+// 🖥️ UI
+function drawUI() {
+    ctx.fillStyle = "white";
+    ctx.font = "16px Arial";
+
+    ctx.fillText(`FPS: ${fps}`, 20, 30);
+    ctx.fillText(`Colisiones: ${collisionCount}`, 20, 50);
+    ctx.fillText(`Círculos: ${circles.length}`, 20, 70);
+
+    ctx.fillText(`P: Pausar | R: Reiniciar | A: Agregar`, 20, 100);
 }
 
 // 🔄 animación
-function updateCircle() {
-    requestAnimationFrame(updateCircle);
-    ctx.clearRect(0, 0, window_width, window_height);
+function animate(time = 0) {
+    requestAnimationFrame(animate);
 
-    // actualizar círculos
-    for (let i = 0; i < circles.length; i++) {
-        circles[i].color = "blue";
-        circles[i].update(ctx);
+    let delta = time - lastTime;
+    lastTime = time;
+    fps = Math.round(1000 / delta);
+
+    if (paused) {
+        drawUI();
+        return;
     }
 
-    // 🔴 DETECCIÓN + REBOTE (INCISO C)
-    for (let i = 0; i < circles.length; i++) {
-        for (let j = i + 1; j < circles.length; j++) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (detectarColision(circles[i], circles[j])) {
+    buildGrid();
 
-                // 🔁 rebote en dirección contraria
-                circles[i].dx = -circles[i].dx;
-                circles[i].dy = -circles[i].dy;
+    circles.forEach(c => {
+        c.color = "cyan";
+        c.update();
+    });
 
-                circles[j].dx = -circles[j].dx;
-                circles[j].dy = -circles[j].dy;
-
-                // 🔴 visual
-                circles[i].color = "red";
-                circles[j].color = "red";
+    circles.forEach(c => {
+        let vecinos = getNeighbors(getCell(c.posX, c.posY));
+        vecinos.forEach(other => {
+            if (c !== other && detectarColision(c, other)) {
+                resolverColision(c, other);
             }
-        }
-    }
+        });
+    });
+
+    drawUI();
 }
 
-updateCircle();
+animate();
